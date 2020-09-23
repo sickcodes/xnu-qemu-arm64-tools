@@ -10,7 +10,7 @@ src := $(wildcard src/*.c) $(wildcard src/**/*.c)
 
 CC = clang
 FLAGS = -DOUT_OF_TREE_BUILD -I$(QEMU_DIR)/include -fno-stack-check -fno-stack-protector -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk
-# FLAGS += -DLINUX
+FLAGS += -DLINUX
 TARGET = tunnel
 
 bin/$(TARGET): $(src)
