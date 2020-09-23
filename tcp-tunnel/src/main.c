@@ -14,6 +14,17 @@
 #define DIR_IN 1
 #define DIR_OUT 2
 
+#ifdef LINUX
+/* FIXME: There's no way to detect this, good luck.
+	Apple changed EAGAIN to a different number, causing errors during runtime.
+*/
+# define EEAGAIN 11
+# define EEWOULDBLOCK EEAGAIN
+#else /* __APPLE__ */
+# define EEAGAIN EAGAIN
+# define EEWOULDBLOCK EWOULDBLOCK
+#endif
+
 typedef struct {
     int fd;
     int *error;
@@ -237,8 +248,8 @@ static int send_receive(socket_t *in, socket_t *out)
             out->close(out->fd);
             return 0;
         } else {
-            if ((*(in->error) != EAGAIN) && \
-                (*(in->error) != EWOULDBLOCK))
+            if ((*(in->error) != EEAGAIN) && \
+                (*(in->error) != EEWOULDBLOCK))
             {
                 // Remote socket error!
                 out->close(out->fd);
@@ -260,7 +271,7 @@ static int send_receive(socket_t *in, socket_t *out)
             return 0;
         } else {
             if ((*(out->error) != EAGAIN) && \
-                (*(out->error) != EWOULDBLOCK))
+                (*(out->error) != EWOULDBLOCK)) // Don't use EEAGAIN on `out`.
             {
                 // Target socket error!
                 out->close(out->fd);
@@ -371,8 +382,8 @@ static int tunnel(socket_t *s_listen, socket_t *in, socket_t *out,
                                   &remotelen);
 
         if (in->fd < 0) {
-            if ((*(in->error) != EAGAIN ) && \
-                (*(in->error) != EWOULDBLOCK))
+            if ((*(in->error) != EEAGAIN ) && \
+                (*(in->error) != EEWOULDBLOCK))
             {
                 fprintf(stderr, "accept failed: %d\n", *(in->error));
                 s_listen->close(s_listen->fd);
